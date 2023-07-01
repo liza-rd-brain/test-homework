@@ -8,3 +8,6 @@ html-report
 
 Task.md
 Questions.md
+/test-results/
+/playwright-report/
+/playwright/.cache/
