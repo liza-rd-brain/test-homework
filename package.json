@@ -4,7 +4,9 @@
   "scripts": {
     "start": "nodemon ./src/server/index.ts",
     "test:unit": "jest",
-    "test:e2e": " .\\node_modules\\.bin\\hermione",
+    "test:e2e": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui",
+    "test:e2e:report": "npx playwright show-report",
     "test": "npm run test:unit && npm run test:e2e",
     "build": "webpack --mode=production --node-env=production",
     "watch": "webpack --watch"
