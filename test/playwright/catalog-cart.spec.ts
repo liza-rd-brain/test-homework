@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe("Каталог", () => {
+test.describe("Каталог и корзина", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('http://localhost:3000/hw/store/catalog');
     await page.setViewportSize({ width: 575, height: 1200 });
@@ -56,13 +56,21 @@ test.describe("Каталог", () => {
     }
   });
 
-  test(`если товар уже добавлен в корзину, в каталоге и на странице товара должно отображаться сообщение об этом`, async ({ page }) => {
-    // + если товар уже добавлен в корзину, повторное нажатие кнопки "добавить в корзину" должно увеличивать его количество
-    // + содержимое корзины должно сохраняться между перезагрузками страницы
+  test(`каталог + корзина, добавление товаров должно корректно отражаться на корзину`, async ({ page }) => {
+    // # КАТАЛОГ
+    // * если товар уже добавлен в корзину, в каталоге и на странице товара должно отображаться сообщение об этом
+    // * если товар уже добавлен в корзину, повторное нажатие кнопки "добавить в корзину" должно увеличивать его количество
+    // * содержимое корзины должно сохраняться между перезагрузками страницы
+    // # КОРЗИНА
+    // * в шапке рядом со ссылкой на корзину должно отображаться количество не повторяющихся товаров в ней
+    // * в корзине должна отображаться таблица с добавленными в нее товарами
+    // * для каждого товара должны отображаться: название, цена, кол-во, стоимость, общая сумма
+    // * в корзине должна быть кнопка "очистить корзину", по нажатию на которую все товары должны удаляться
+    // * если корзина пустая, должна отображаться ссылка на каталог товаров
     await page.goto('http://localhost:3000/hw/store/catalog/0');
-    const res = await page.waitForResponse('**/hw/store/api/products/0');
+    const product0Res = await page.waitForResponse('**/hw/store/api/products/0');
     try {
-      const data = await res.json() as ({
+      const product0 = await product0Res.json() as ({
         "id": number,
         "name": string,
         "description": string,
@@ -88,15 +96,45 @@ test.describe("Каталог", () => {
       // +3 нажатия -- 4 товар в корзине
       await page.goto('http://localhost:3000/hw/store/cart');
       expect(await page.locator('.Cart-Count').textContent()).toBe("4");
+      // корзина отображает кол-во только по типу товаров, т.е. только 1 товар был добавлен
+      expect(await page.locator('.Application-Menu > .navbar-nav > a:last-child').textContent()).toBe(`Cart (1)`);
+
+      // добавляем еще 1 тип товара
+      await page.goto('http://localhost:3000/hw/store/catalog/1');
+      const product1Res = await page.waitForResponse('**/hw/store/api/products/1');
+      const product1 = await product1Res.json() as ({
+        "id": number,
+        "name": string,
+        "description": string,
+        "price": number,
+        "color": string,
+        "material": string
+      })
+      await page.locator('button.ProductDetails-AddToCart').click();
+      expect(await page.locator('.Application-Menu > .navbar-nav > a:last-child').textContent()).toBe(`Cart (2)`);
 
       // перезагрузки страницы не сбрасывают состояние
+      await page.goto('http://localhost:3000/hw/store/cart');
       await page.reload();
-      expect(await page.locator('.Cart-Index').textContent()).toBe("1");
-      expect(await page.locator('.Cart-Name').textContent()).toBe(data.name);
-      expect(await page.locator('.Cart-Price').textContent()).toBe(`$${data.price}`);
-      expect(await page.locator('.Cart-Count').textContent()).toBe("4");
-      expect(await page.locator('.Cart-OrderPrice').textContent()).toBe(`$${data.price * 4}`);
-      expect(await page.locator('.Cart-Total').textContent()).toBe(`$${data.price * 4}`);
+
+      expect(await page.locator('tbody > tr:nth-child(1) .Cart-Index').textContent()).toBe("1");
+      expect(await page.locator('tbody > tr:nth-child(1) .Cart-Name').textContent()).toBe(product0.name);
+      expect(await page.locator('tbody > tr:nth-child(1) .Cart-Price').textContent()).toBe(`$${product0.price}`);
+      expect(await page.locator('tbody > tr:nth-child(1) .Cart-Count').textContent()).toBe("4");
+      expect(await page.locator('tbody > tr:nth-child(1) .Cart-Total').textContent()).toBe(`$${product0.price * 4}`);
+
+      expect(await page.locator('tbody > tr:nth-child(2) .Cart-Index').textContent()).toBe("2");
+      expect(await page.locator('tbody > tr:nth-child(2) .Cart-Name').textContent()).toBe(product1.name);
+      expect(await page.locator('tbody > tr:nth-child(2) .Cart-Price').textContent()).toBe(`$${product1.price}`);
+      expect(await page.locator('tbody > tr:nth-child(2) .Cart-Count').textContent()).toBe("1");
+      expect(await page.locator('tbody > tr:nth-child(2) .Cart-Total').textContent()).toBe(`$${product1.price * 1}`);
+
+      expect(await page.locator('.Cart-OrderPrice').textContent()).toBe(`$${(product0.price * 4) + (product1.price * 1)}`);
+
+      // очистка
+      await page.locator('button.Cart-Clear').click();
+      expect(await page.locator('div').getByText(/Cart is empty\. Please select products in the/i).count()).toBe(1);
+      expect(await page.locator('div.Cart > .row > .col a').getAttribute('href')).toBe('/hw/store/catalog');
     } catch (error) {
       expect(error).toBe(null);
     }

@@ -27,13 +27,19 @@ test.describe("Страницы", () => {
         expect(await cannotGetEl.getByText(/$Cannot GET \/hw\/store\/contacts/i).count()).not.toBe(1);
     });
 
-    test('страницы главная, условия доставки, контакты должны иметь статическое содержимое', async ({ page }) => {
+    test('страницы главная должна иметь статическое содержимое', async ({ page }, testInfo) => {
         // главная
         await page.goto('http://localhost:3000/hw/store');
         await expect(page).toHaveScreenshot();
+    });
+
+    test('условия доставки должны иметь статическое содержимое', async ({ page }, testInfo) => {
         // условия доставки
         await page.goto('http://localhost:3000/hw/store/delivery');
         await expect(page).toHaveScreenshot();
+    });
+
+    test('контакты должны иметь статическое содержимое', async ({ page }, testInfo) => {
         // контакты
         await page.goto('http://localhost:3000/hw/store/contacts');
         await expect(page).toHaveScreenshot();
