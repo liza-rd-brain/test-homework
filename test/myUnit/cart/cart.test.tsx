@@ -29,26 +29,25 @@ import { Cart } from "../../../src/client/pages/Cart";
 describe(" в шапке рядом со ссылкой на корзину должно отображаться количество не повторяющихся товаров в ней", () => {
   const basename = "/hw/store";
 
-  const api = new ExampleApi(basename);
-  const cart = new CartApi();
-
-  const store = initStore(api, cart);
-
-  const initialState = store.getState();
-
-  //TODO: заменить Application на нужный компонент
-  const application = (
-    <BrowserRouter basename={basename}>
-      <Provider store={store}>
-        <Application />
-      </Provider>
-    </BrowserRouter>
-  );
-
   /**
    * ? излишний тест
    */
-  /*  it("в корзине лежит один товар одного вида после добавления одного товара ", async () => {
+  it("в корзине лежит один товар одного вида после добавления одного товара ", async () => {
+    const api = new ExampleApi(basename);
+    const cart = new CartApi();
+
+    const store = initStore(api, cart);
+
+    const initialState = store.getState();
+
+    //TODO: заменить Application на нужный компонент
+    const application = (
+      <BrowserRouter basename={basename}>
+        <Provider store={store}>
+          <Application />
+        </Provider>
+      </BrowserRouter>
+    );
     const storeOneProduct = {
       ...initialState,
       cart: { 1: { name: "name", count: 1, price: 10 } },
@@ -69,7 +68,7 @@ describe(" в шапке рядом со ссылкой на корзину до
 
     expect(stateAfterDispatch).toEqual(storeOneProduct);
   });
- */
+
   it("если в сторе один неповторяющийся товар, то в ui корзины тоже 1 ", () => {
     const TEST_AMOUNT = 1;
 
@@ -188,8 +187,14 @@ describe(" в шапке рядом со ссылкой на корзину до
 
   it("если в сторе нет товаров,в ui корзины тоже пусто ", () => {
     const CART_NAME = "Cart";
+
+    const testCartState = {};
     const api = new ExampleApi(basename);
     const cart = new CartApi();
+    cart.getState = () => {
+      return testCartState;
+    };
+
     const store = initStore(api, cart);
 
     const application = (
