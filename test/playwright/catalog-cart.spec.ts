@@ -6,8 +6,8 @@ test.describe("Каталог и корзина", () => {
     await page.setViewportSize({ width: 575, height: 1200 });
   });
 
-  // ! BUG_ID === 1 пропадает имя товара в каталоге
-  test('#BID-1; в каталоге должны корректно отображаться товары с сервера', async ({ page }) => {
+
+  test(' в каталоге должны корректно отображаться товары с сервера', async ({ page }) => {
     // * в каталоге должны отображаться товары, список которых приходит с сервера
     // * для каждого товара в каталоге отображается название, цена и ссылка на страницу с подробной информацией о товаре;
     const res = await page.waitForResponse('**/hw/store/api/products');
@@ -58,15 +58,15 @@ test.describe("Каталог и корзина", () => {
     }
   });
 
-  // ! BUG_ID === 9 кнопка add to cart меньше
-  test(`#BID-9, добавление товара в корзину (проверка шапки)`, async ({ page }) => {
+
+  test(`добавление товара в корзину (проверка шапки)`, async ({ page }) => {
     await page.goto('http://localhost:3000/hw/store/catalog/0');
     await page.locator('button.ProductDetails-AddToCart.btn.btn-primary.btn-lg').click();
     expect(await page.locator('.Application-Menu > .navbar-nav > a:last-child').textContent()).toBe(`Cart (1)`);
   });
 
-  // ! BUG_ID === "7" не добавляет элемент в корзину просто увеличивает количество
-  test(`#BID-7, добавление товара в корзину (проверка корзины)`, async ({ page }) => {
+
+  test(`добавление товара в корзину (проверка корзины)`, async ({ page }) => {
     await page.goto('http://localhost:3000/hw/store/catalog/0');
     await page.locator('button.ProductDetails-AddToCart').click();
     expect(await page.locator('.Application-Menu > .navbar-nav > a:last-child').textContent()).toBe(`Cart (1)`);
@@ -74,10 +74,8 @@ test.describe("Каталог и корзина", () => {
     expect(await page.locator('.Cart-Count').textContent()).toBe("1");
   });
 
-  // ! BUG_ID === "8" неправильного цвета плашка у заказа
-  // ! BUG_ID === '5' ломает отправление формы заказа
-  // ! BUG_ID === 10 всегда не валидный номер телефона
-  test(`#BID-8/5/10, простой сценарий заказа (с учетом статуса заказа)`, async ({ page }) => {
+
+  test(`простой сценарий заказа (с учетом статуса заказа)`, async ({ page }) => {
     await page.goto('http://localhost:3000/hw/store/catalog/0');
     await page.locator('button.ProductDetails-AddToCart').click();
     await page.goto('http://localhost:3000/hw/store/cart');
@@ -90,10 +88,8 @@ test.describe("Каталог и корзина", () => {
     expect(await page.locator('.Cart-SuccessMessage.alert-success').count()).toBe(1);
   });
 
-  // ! BUG_ID === '2' невалидный номер заказа
-  // ! BUG_ID === '5' ломает отправление формы заказа
-  // ! BUG_ID === 10 всегда не валидный номер телефона
-  test(`#BID-2/5/10, простой сценарий заказа (с учетом номера заказа)`, async ({ page }) => {
+
+  test(`простой сценарий заказа (с учетом номера заказа)`, async ({ page }) => {
     await page.goto('http://localhost:3000/hw/store/catalog/0');
     await page.locator('button.ProductDetails-AddToCart').click();
     await page.goto('http://localhost:3000/hw/store/cart');
@@ -117,9 +113,6 @@ test.describe("Каталог и корзина", () => {
     // * для каждого товара должны отображаться: название, цена, кол-во, стоимость, общая сумма
     // * в корзине должна быть кнопка "очистить корзину", по нажатию на которую все товары должны удаляться
     // * если корзина пустая, должна отображаться ссылка на каталог товаров
-    // # +++
-    // * BUG_ID === 3 всегда отдает 1 товар (детали)
-    // * BUG_ID === '5' ломает отправление формы заказа
 
     await page.goto('http://localhost:3000/hw/store/catalog/0');
     const product0Res = await page.waitForResponse('**/hw/store/api/products/0');

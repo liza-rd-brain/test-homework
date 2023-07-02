@@ -37,8 +37,7 @@ test.describe("Общие требования", () => {
         await expect(await cartEl.getAttribute('href')).toBe('/hw/store/cart');
     })
 
-    // TODO: move to integration
-    // ? covered by previous test
+
     test('название магазина в шапке должно быть ссылкой на главную страницу', async ({ page }) => {
         const exampleStoreEl = page.locator('a.Application-Brand.navbar-brand');
         await expect(await exampleStoreEl.getAttribute('href')).toBe('/hw/store/');
