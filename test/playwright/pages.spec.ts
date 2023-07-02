@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe("Страницы", () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:3000/hw/store');
-        await page.setViewportSize({ width: 575, height: 1200 });
+        await page.setViewportSize({ width: 1920, height: 1200 });
     });
 
     test('в магазине должны быть страницы: главная, каталог, условия доставки, контакты', async ({ page }) => {
