@@ -6,7 +6,8 @@ test.describe("Каталог и корзина", () => {
     await page.setViewportSize({ width: 575, height: 1200 });
   });
 
-  test('в каталоге должны корректно отображаться товары с сервера', async ({ page }) => {
+  // ! BUG_ID === 1 пропадает имя товара в каталоге
+  test('#BID-1; в каталоге должны корректно отображаться товары с сервера', async ({ page }) => {
     // * в каталоге должны отображаться товары, список которых приходит с сервера
     // * для каждого товара в каталоге отображается название, цена и ссылка на страницу с подробной информацией о товаре;
     const res = await page.waitForResponse('**/hw/store/api/products');
@@ -57,6 +58,48 @@ test.describe("Каталог и корзина", () => {
     }
   });
 
+  // ! BUG_ID === 9 кнопка add to cart меньше
+  test(`#BID-9, добавление товара в корзину (проверка шапки)`, async ({ page }) => {
+    await page.goto('http://localhost:3000/hw/store/catalog/0');
+    await page.locator('button.ProductDetails-AddToCart.btn.btn-primary.btn-lg').click();
+    expect(await page.locator('.Application-Menu > .navbar-nav > a:last-child').textContent()).toBe(`Cart (1)`);
+  });
+
+  // ! BUG_ID === "7" не добавляет элемент в корзину просто увеличивает количество
+  test(`#BID-7, добавление товара в корзину (проверка корзины)`, async ({ page }) => {
+    await page.goto('http://localhost:3000/hw/store/catalog/0');
+    await page.locator('button.ProductDetails-AddToCart.btn.btn-primary.btn-lg').click();
+    expect(await page.locator('.Application-Menu > .navbar-nav > a:last-child').textContent()).toBe(`Cart (1)`);
+    await page.goto('http://localhost:3000/hw/store/cart');
+    expect(await page.locator('.Cart-Count').textContent()).toBe("1");
+  });
+
+  // ! BUG_ID === "8" неправильного цвета плашка у заказа
+  test(`#BID-8, простой сценарий заказа (с учетом статуса заказа)`, async ({ page }) => {
+    await page.goto('http://localhost:3000/hw/store/catalog/0');
+    await page.locator('button.ProductDetails-AddToCart').click();
+    await page.goto('http://localhost:3000/hw/store/cart');
+    await page.locator('#f-name').type('User');
+    await page.locator('#f-phone').type('89233333333');
+    await page.locator('#f-address').type('п2 э9');
+    await page.locator('button.Form-Submit').getByText('Checkout').click();
+
+    await new Promise((res) => setTimeout(res, 3000));
+    expect(await page.locator('.Cart-SuccessMessage.alert-success').count()).toBe(1);
+  });
+
+  // ! BUG_ID === 2 невалидный номер заказа
+  test(`#BID-2, простой сценарий заказа (с учетом номера заказа)`, async ({ page }) => {
+    await page.goto('http://localhost:3000/hw/store/catalog/0');
+    await page.locator('button.ProductDetails-AddToCart').click();
+    await page.goto('http://localhost:3000/hw/store/cart');
+    await page.locator('#f-name').type('User');
+    await page.locator('#f-phone').type('89233333333');
+    await page.locator('#f-address').type('п2 э9');
+    await page.locator('button.Form-Submit').getByText('Checkout').click();
+    expect(Number(await page.locator('.Cart-SuccessMessage .Cart-Number').textContent())).toBeLessThan(1000);
+  });
+
   test(`каталог + корзина, добавление товаров должно корректно отражаться на корзину`, async ({ page }) => {
     // # КАТАЛОГ
     // * если товар уже добавлен в корзину, в каталоге и на странице товара должно отображаться сообщение об этом
@@ -68,6 +111,11 @@ test.describe("Каталог и корзина", () => {
     // * для каждого товара должны отображаться: название, цена, кол-во, стоимость, общая сумма
     // * в корзине должна быть кнопка "очистить корзину", по нажатию на которую все товары должны удаляться
     // * если корзина пустая, должна отображаться ссылка на каталог товаров
+    // # +++
+    // * BUG_ID === 3 всегда отдает 1 товар (детали)
+    // * BUG_ID === '5' ломает отправление формы заказа
+    // * BUG_ID === 10 всегда не валидный номер телефона
+
     await page.goto('http://localhost:3000/hw/store/catalog/0');
     const product0Res = await page.waitForResponse('**/hw/store/api/products/0');
     try {
@@ -80,7 +128,7 @@ test.describe("Каталог и корзина", () => {
         "material": string
       })
 
-      await page.locator('button.ProductDetails-AddToCart.btn.btn-primary.btn-lg').click();
+      await page.locator('button.ProductDetails-AddToCart').click();
       expect(await page.locator('.CartBadge.text-success').count()).toBe(1);
       await page.goto('http://localhost:3000/hw/store/catalog');
       expect(await page.locator('.Catalog > .row:last-child > div:nth-child(1) .CartBadge.text-success').count()).toBe(1);
@@ -134,10 +182,9 @@ test.describe("Каталог и корзина", () => {
 
       // заказ
       await page.locator('#f-name').type('User');
-      await page.locator('#f-phone').type('89520986374');
+      await page.locator('#f-phone').type('89233333333');
       await page.locator('#f-address').type('п2 э9');
       await page.locator('button.Form-Submit').getByText('Checkout').click();
-      expect(await page.locator('.Cart-SuccessMessage.alert-success .Cart-Number').textContent()).toBe('1');
 
       // очистка
       await page.goto('http://localhost:3000/hw/store/catalog/0');
