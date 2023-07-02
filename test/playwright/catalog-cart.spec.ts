@@ -68,14 +68,16 @@ test.describe("Каталог и корзина", () => {
   // ! BUG_ID === "7" не добавляет элемент в корзину просто увеличивает количество
   test(`#BID-7, добавление товара в корзину (проверка корзины)`, async ({ page }) => {
     await page.goto('http://localhost:3000/hw/store/catalog/0');
-    await page.locator('button.ProductDetails-AddToCart.btn.btn-primary.btn-lg').click();
+    await page.locator('button.ProductDetails-AddToCart').click();
     expect(await page.locator('.Application-Menu > .navbar-nav > a:last-child').textContent()).toBe(`Cart (1)`);
     await page.goto('http://localhost:3000/hw/store/cart');
     expect(await page.locator('.Cart-Count').textContent()).toBe("1");
   });
 
   // ! BUG_ID === "8" неправильного цвета плашка у заказа
-  test(`#BID-8, простой сценарий заказа (с учетом статуса заказа)`, async ({ page }) => {
+  // ! BUG_ID === '5' ломает отправление формы заказа
+  // ! BUG_ID === 10 всегда не валидный номер телефона
+  test(`#BID-8/5/10, простой сценарий заказа (с учетом статуса заказа)`, async ({ page }) => {
     await page.goto('http://localhost:3000/hw/store/catalog/0');
     await page.locator('button.ProductDetails-AddToCart').click();
     await page.goto('http://localhost:3000/hw/store/cart');
@@ -88,8 +90,10 @@ test.describe("Каталог и корзина", () => {
     expect(await page.locator('.Cart-SuccessMessage.alert-success').count()).toBe(1);
   });
 
-  // ! BUG_ID === 2 невалидный номер заказа
-  test(`#BID-2, простой сценарий заказа (с учетом номера заказа)`, async ({ page }) => {
+  // ! BUG_ID === '2' невалидный номер заказа
+  // ! BUG_ID === '5' ломает отправление формы заказа
+  // ! BUG_ID === 10 всегда не валидный номер телефона
+  test(`#BID-2/5/10, простой сценарий заказа (с учетом номера заказа)`, async ({ page }) => {
     await page.goto('http://localhost:3000/hw/store/catalog/0');
     await page.locator('button.ProductDetails-AddToCart').click();
     await page.goto('http://localhost:3000/hw/store/cart');
@@ -97,6 +101,8 @@ test.describe("Каталог и корзина", () => {
     await page.locator('#f-phone').type('89233333333');
     await page.locator('#f-address').type('п2 э9');
     await page.locator('button.Form-Submit').getByText('Checkout').click();
+
+    await new Promise((res) => setTimeout(res, 3000));
     expect(Number(await page.locator('.Cart-SuccessMessage .Cart-Number').textContent())).toBeLessThan(1000);
   });
 
@@ -114,7 +120,6 @@ test.describe("Каталог и корзина", () => {
     // # +++
     // * BUG_ID === 3 всегда отдает 1 товар (детали)
     // * BUG_ID === '5' ломает отправление формы заказа
-    // * BUG_ID === 10 всегда не валидный номер телефона
 
     await page.goto('http://localhost:3000/hw/store/catalog/0');
     const product0Res = await page.waitForResponse('**/hw/store/api/products/0');
