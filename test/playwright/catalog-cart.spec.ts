@@ -6,10 +6,9 @@ test.describe("Каталог и корзина", () => {
     await page.setViewportSize({ width: 575, height: 1200 });
   });
 
-  test('в каталоге должны корректно отображаться товары с сервера', async ({ page }, testInfo) => {
+  test('в каталоге должны корректно отображаться товары с сервера', async ({ page }) => {
     // * в каталоге должны отображаться товары, список которых приходит с сервера
     // * для каждого товара в каталоге отображается название, цена и ссылка на страницу с подробной информацией о товаре;
-    testInfo.setTimeout(3 * 1000);
     const res = await page.waitForResponse('**/hw/store/api/products');
     try {
       const data = (await res.json()) as Array<{ id: number; name: string; price: number }>;
@@ -81,7 +80,7 @@ test.describe("Каталог и корзина", () => {
         "material": string
       })
 
-      await page.locator('button.ProductDetails-AddToCart').click();
+      await page.locator('button.ProductDetails-AddToCart.btn.btn-primary.btn-lg').click();
       expect(await page.locator('.CartBadge.text-success').count()).toBe(1);
       await page.goto('http://localhost:3000/hw/store/catalog');
       expect(await page.locator('.Catalog > .row:last-child > div:nth-child(1) .CartBadge.text-success').count()).toBe(1);
@@ -133,7 +132,18 @@ test.describe("Каталог и корзина", () => {
 
       expect(await page.locator('.Cart-OrderPrice').textContent()).toBe(`$${(product0.price * 4) + (product1.price * 1)}`);
 
+      // заказ
+      await page.locator('#f-name').type('User');
+      await page.locator('#f-phone').type('89520986374');
+      await page.locator('#f-address').type('п2 э9');
+      await page.locator('button.Form-Submit').getByText('Checkout').click();
+      expect(await page.locator('.Cart-SuccessMessage.alert-success .Cart-Number').textContent()).toBe('1');
+
       // очистка
+      await page.goto('http://localhost:3000/hw/store/catalog/0');
+      await page.locator('button.ProductDetails-AddToCart').click();
+      await page.goto('http://localhost:3000/hw/store/cart');
+
       await page.locator('button.Cart-Clear').click();
       expect(await page.locator('div').getByText(/Cart is empty\. Please select products in the/i).count()).toBe(1);
       expect(await page.locator('div.Cart > .row > .col a').getAttribute('href')).toBe('/hw/store/catalog');
